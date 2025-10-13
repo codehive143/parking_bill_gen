@@ -1,0 +1,160 @@
+from flask import Flask, render_template, request, send_file
+from fpdf import FPDF
+from datetime import datetime
+import os
+import json
+
+app = Flask(__name__)
+
+class ParkingBillGenerator:
+    def __init__(self):
+        self.monthly_rate = 1000
+        self.bill_counter = self.load_bill_counter()
+    
+    def load_bill_counter(self):
+        """Load the last bill number from file"""
+        try:
+            if os.path.exists('/tmp/bill_counter.json'):
+                with open('/tmp/bill_counter.json', 'r') as f:
+                    return json.load(f).get('last_number', 0)
+        except:
+            pass
+        return 0
+    
+    def save_bill_counter(self):
+        """Save the current bill number to file"""
+        try:
+            with open('/tmp/bill_counter.json', 'w') as f:
+                json.dump({'last_number': self.bill_counter}, f)
+        except:
+            pass
+    
+    def get_next_bill_number(self):
+        """Get the next bill number"""
+        self.bill_counter += 1
+        self.save_bill_counter()
+        return f"VP{self.bill_counter:04d}"  # VP0001, VP0002, etc.
+    
+    def generate_pdf(self, customer_data, bill_number):
+        # Create PDF instance
+        pdf = FPDF()
+        pdf.add_page()
+        
+        # Title
+        pdf.set_font("Arial", style="B", size=18)
+        pdf.cell(200, 15, txt="MONTHLY PARKING BILL", ln=1, align="C")
+        pdf.ln(5)
+        
+        # Parking Info
+        pdf.set_font("Arial", style="B", size=14)
+        pdf.cell(200, 10, txt="Vengatesan Car Parking", ln=1, align="C")
+        pdf.set_font("Arial", size=11)
+        pdf.cell(200, 7, txt="Tittagudi", ln=1, align="C")
+        pdf.cell(200, 7, txt="Contact: 9791365506", ln=1, align="C")
+        pdf.ln(10)
+        
+        # Bill Details Header
+        pdf.set_font("Arial", style="B", size=12)
+        pdf.cell(200, 10, txt="BILL DETAILS", ln=1)
+        pdf.set_font("Arial", size=11)
+        
+        # Bill Details Content
+        details = [
+            ("Bill Number", bill_number),
+            ("Bill Date", datetime.now().strftime("%d-%m-%Y")),
+            ("Customer Name", customer_data["name"]),
+            ("Vehicle Number", customer_data["vehicle_no"]),
+            ("Vehicle Type", customer_data["vehicle_type"].upper()),
+            ("Parking Month", f"{customer_data['month']} {customer_data['year']}"),
+            ("Payment Mode", customer_data["payment_mode"])
+        ]
+        
+        for label, value in details:
+            pdf.cell(60, 8, txt=label + ":", ln=0)
+            pdf.cell(130, 8, txt=str(value), ln=1)
+        
+        pdf.ln(10)
+        
+        # Amount Section
+        pdf.set_font("Arial", style="B", size=12)
+        pdf.cell(200, 10, txt="AMOUNT DETAILS", ln=1)
+        pdf.set_font("Arial", size=11)
+        
+        pdf.cell(120, 10, txt="Monthly Parking Charges:", ln=0)
+        pdf.cell(70, 10, txt=f"Rs.{self.monthly_rate:.2f}", ln=1)
+        
+        pdf.ln(8)
+        
+        # Total Amount
+        pdf.set_font("Arial", style="B", size=14)
+        pdf.cell(120, 12, txt="TOTAL AMOUNT:", ln=0)
+        pdf.cell(70, 12, txt=f"Rs.{self.monthly_rate:.2f}", ln=1)
+        
+        pdf.ln(15)
+        
+        # Payment Mode Confirmation
+        pdf.set_font("Arial", style="B", size=12)
+        pdf.cell(200, 10, txt="PAYMENT MODE:", ln=1)
+        pdf.set_font("Arial", size=11)
+        pdf.cell(200, 8, txt=f"Selected Mode: {customer_data['payment_mode']}", ln=1)
+        
+        pdf.ln(10)
+        
+        # Footer
+        pdf.set_font("Arial", style="I", size=9)
+        pdf.cell(200, 6, txt="Thank you for choosing Vengatesan Car Parking!", ln=1, align="C")
+        pdf.cell(200, 6, txt="This is a computer-generated bill.", ln=1, align="C")
+        
+        # Save PDF to memory
+        filename = f"Vengatesan_Parking_{bill_number}_{customer_data['month']}_{customer_data['year']}.pdf"
+        
+        # For Vercel, we'll return the PDF content directly
+        pdf_output = pdf.output(dest='S').encode('latin-1')
+        
+        return filename, pdf_output
+
+@app.route('/')
+def index():
+    months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ]
+    return render_template('index.html', months=months)
+
+@app.route('/generate_bill', methods=['POST'])
+def generate_bill():
+    try:
+        # Get form data
+        customer_data = {
+            "name": request.form['name'],
+            "vehicle_no": request.form['vehicle_no'],
+            "vehicle_type": request.form['vehicle_type'],
+            "month": request.form['month'],
+            "year": request.form['year'],
+            "payment_mode": request.form['payment_mode']
+        }
+        
+        # Generate PDF with bill number
+        generator = ParkingBillGenerator()
+        bill_number = generator.get_next_bill_number()
+        pdf_filename, pdf_content = generator.generate_pdf(customer_data, bill_number)
+        
+        # Send file to user
+        return send_file(
+            io.BytesIO(pdf_content),
+            as_attachment=True,
+            download_name=pdf_filename,
+            mimetype='application/pdf'
+        )
+    
+    except Exception as e:
+        return f"Error generating bill: {str(e)}"
+
+# For Vercel deployment
+import io
+@app.route('/')
+def home():
+    return index()
+
+if __name__ == '__main__':
+    app.run(debug=True)
