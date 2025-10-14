@@ -2,12 +2,14 @@ from flask import Flask, render_template_string, request, send_file
 from fpdf import FPDF
 from datetime import datetime
 import io
-import base64
 
 app = Flask(__name__)
 
-# Parking slots list
-PARKING_SLOTS = [f"SLOT-{i:02d}" for i in range(1, 51)]  # SLOT-01 to SLOT-50
+# Exactly 14 parking slots
+PARKING_SLOTS = [f"SLOT-{i:02d}" for i in range(1, 15)]  # SLOT-01 to SLOT-14
+
+# Year options
+YEARS = [str(year) for year in range(2020, 2031)]  # 2020 to 2030
 
 HTML_TEMPLATE = '''
 <!DOCTYPE html>
@@ -100,6 +102,14 @@ HTML_TEMPLATE = '''
             margin: 20px 0;
             text-align: center;
         }
+        .slot-info {
+            background: #e7f3ff;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -116,6 +126,10 @@ HTML_TEMPLATE = '''
             <p><strong>📍 Address:</strong> Tittagudi</p>
             <p><strong>📞 Contact:</strong> 9791365506</p>
             <p><strong>💰 Monthly Rate:</strong> Rs. 1000</p>
+        </div>
+
+        <div class="slot-info">
+            <strong>🅿️ Available Parking Slots:</strong> 14 Slots (SLOT-01 to SLOT-14)
         </div>
         
         <form action="/generate" method="POST">
@@ -170,7 +184,12 @@ HTML_TEMPLATE = '''
             
             <div class="form-group">
                 <label>Year:</label>
-                <input type="number" name="year" value="2024" min="2020" max="2030" required>
+                <select name="year" required>
+                    <option value="">Select Year</option>
+                    {% for year in years %}
+                    <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
             </div>
             
             <div class="form-group">
@@ -185,18 +204,14 @@ HTML_TEMPLATE = '''
             <button type="submit">Generate Parking Bill PDF</button>
         </form>
     </div>
-
-    <script>
-        // Set current year as default
-        document.querySelector('input[name="year"]').value = new Date().getFullYear();
-    </script>
 </body>
 </html>
 '''
 
 @app.route('/')
 def home():
-    return render_template_string(HTML_TEMPLATE, slots=PARKING_SLOTS)
+    current_year = datetime.now().year
+    return render_template_string(HTML_TEMPLATE, slots=PARKING_SLOTS, years=YEARS, current_year=current_year)
 
 @app.route('/generate', methods=['POST'])
 def generate():
@@ -237,7 +252,7 @@ def generate():
             ("Vehicle Number", vehicle_no),
             ("Vehicle Type", vehicle_type.upper()),
             ("Parking Slot", slot_number),
-            ("Parking Month", f"{month} {year}"),
+            ("Parking Period", f"{month} {year}"),
             ("Payment Mode", payment_mode)
         ]
         
