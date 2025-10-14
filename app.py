@@ -102,14 +102,6 @@ HTML_TEMPLATE = '''
             margin: 20px 0;
             text-align: center;
         }
-        .slot-info {
-            background: #e7f3ff;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            text-align: center;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
@@ -126,10 +118,6 @@ HTML_TEMPLATE = '''
             <p><strong>📍 Address:</strong> Tittagudi</p>
             <p><strong>📞 Contact:</strong> 9791365506</p>
             <p><strong>💰 Monthly Rate:</strong> Rs. 1000</p>
-        </div>
-
-        <div class="slot-info">
-            <strong>🅿️ Available Parking Slots:</strong> 14 Slots (SLOT-01 to SLOT-14)
         </div>
         
         <form action="/generate" method="POST">
