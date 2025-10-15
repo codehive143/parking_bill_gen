@@ -290,26 +290,26 @@ def generate():
         year = request.form['year']
         payment_mode = request.form['payment_mode']
         
-        # Create PDF with optimized layout for one page
+        # Create PDF
         pdf = FPDF()
         pdf.add_page()
         
-        # Header - Compact
+        # Header - Normal size
         pdf.set_font("Arial", style="B", size=16)
-        pdf.cell(200, 8, txt="VENGATESAN CAR PARKING", ln=1, align="C")
-        pdf.set_font("Arial", size=8)
-        pdf.cell(200, 5, txt="Tittagudi | Contact: 9791365506", ln=1, align="C")
+        pdf.cell(200, 10, txt="VENGATESAN CAR PARKING", ln=1, align="C")
+        pdf.set_font("Arial", size=10)
+        pdf.cell(200, 8, txt="Tittagudi | Contact: 9791365506", ln=1, align="C")
+        pdf.ln(10)
+        
+        # Title - Normal size
+        pdf.set_font("Arial", style="B", size=18)
+        pdf.cell(200, 15, txt="MONTHLY PARKING BILL", ln=1, align="C")
         pdf.ln(5)
         
-        # Title - Smaller
-        pdf.set_font("Arial", style="B", size=14)
-        pdf.cell(200, 10, txt="MONTHLY PARKING BILL", ln=1, align="C")
-        pdf.ln(3)
-        
-        # Bill Details - Compact
-        pdf.set_font("Arial", style="B", size=10)
-        pdf.cell(200, 6, txt="BILL DETAILS", ln=1)
-        pdf.set_font("Arial", size=9)
+        # Bill Details - Normal size
+        pdf.set_font("Arial", style="B", size=12)
+        pdf.cell(200, 10, txt="BILL DETAILS", ln=1)
+        pdf.set_font("Arial", size=11)
         
         details = [
             ("Bill Date", datetime.now().strftime("%d-%m-%Y")),
@@ -322,56 +322,56 @@ def generate():
         ]
         
         for label, value in details:
-            pdf.cell(50, 5, txt=label + ":", ln=0)
-            pdf.cell(140, 5, txt=str(value), ln=1)
+            pdf.cell(60, 8, txt=label + ":", ln=0)
+            pdf.cell(130, 8, txt=str(value), ln=1)
         
-        pdf.ln(5)
+        pdf.ln(10)
         
-        # Amount Section - Compact
-        pdf.set_font("Arial", style="B", size=10)
-        pdf.cell(200, 6, txt="AMOUNT DETAILS", ln=1)
-        pdf.set_font("Arial", size=9)
-        
-        pdf.cell(100, 5, txt="Monthly Parking Charges:", ln=0)
-        pdf.cell(90, 5, txt=f"Rs. 1000.00", ln=1)
-        
-        pdf.ln(3)
-        
-        # Total Amount - Smaller
+        # Amount Section - Normal size
         pdf.set_font("Arial", style="B", size=12)
-        pdf.cell(100, 8, txt="TOTAL AMOUNT:", ln=0)
-        pdf.cell(90, 8, txt=f"Rs. 1000.00", ln=1)
+        pdf.cell(200, 10, txt="AMOUNT DETAILS", ln=1)
+        pdf.set_font("Arial", size=11)
+        
+        pdf.cell(120, 10, txt="Monthly Parking Charges:", ln=0)
+        pdf.cell(70, 10, txt=f"Rs. 1000.00", ln=1)
         
         pdf.ln(8)
         
-        # CodeHive Logo in PDF - Compact
+        # Total Amount - Normal size
+        pdf.set_font("Arial", style="B", size=14)
+        pdf.cell(120, 12, txt="TOTAL AMOUNT:", ln=0)
+        pdf.cell(70, 12, txt=f"Rs. 1000.00", ln=1)
+        
+        pdf.ln(15)
+        
+        # FOOTER SECTION - SMALLER FONT SIZES
         pdf.set_font("Arial", style="B", size=8)
-        pdf.cell(200, 4, txt="-" * 40, ln=1, align="C")
-        pdf.set_font("Arial", style="B", size=12)
+        pdf.cell(200, 4, txt="-" * 50, ln=1, align="C")
+        pdf.set_font("Arial", style="B", size=10)
         pdf.cell(200, 6, txt="CODE HIVE", ln=1, align="C")
-        pdf.set_font("Arial", style="I", size=10)
+        pdf.set_font("Arial", style="I", size=8)
         pdf.cell(200, 5, txt="LEARN AND LEAD", ln=1, align="C")
         pdf.set_font("Arial", style="B", size=8)
-        pdf.cell(200, 4, txt="-" * 40, ln=1, align="C")
+        pdf.cell(200, 4, txt="-" * 50, ln=1, align="C")
         pdf.ln(2)
         
-        # Developer Information - Compact
-        pdf.set_font("Arial", style="B", size=9)
-        pdf.cell(200, 4, txt="Development Partner", ln=1, align="C")
+        # Developer Information - Smaller
+        pdf.set_font("Arial", style="B", size=8)
+        pdf.cell(200, 5, txt="Development Partner", ln=1, align="C")
         pdf.set_font("Arial", size=7)
-        pdf.cell(200, 3, txt="Email: codehive.dev@gmail.com", ln=1, align="C")
-        pdf.cell(200, 3, txt="Phone: +91 98765 43210", ln=1, align="C")
-        pdf.cell(200, 3, txt="Web: www.codehive.dev", ln=1, align="C")
-        pdf.cell(200, 3, txt="Specialized in Web Applications & Automation", ln=1, align="C")
+        pdf.cell(200, 4, txt="Email: codehive.dev@gmail.com", ln=1, align="C")
+        pdf.cell(200, 4, txt="Phone: +91 98765 43210", ln=1, align="C")
+        pdf.cell(200, 4, txt="Web: www.codehive.dev", ln=1, align="C")
+        pdf.cell(200, 4, txt="Specialized in Web Applications & Automation", ln=1, align="C")
         pdf.ln(3)
         
-        # Footer with CodeHive credit - Smaller font
-        pdf.set_font("Arial", style="I", size=6)
-        pdf.cell(200, 3, txt="Thank you for choosing Vengatesan Car Parking!", ln=1, align="C")
-        pdf.cell(200, 3, txt="This is a computer-generated bill.", ln=1, align="C")
+        # Final Footer - Smallest
+        pdf.set_font("Arial", style="I", size=7)
+        pdf.cell(200, 4, txt="Thank you for choosing Vengatesan Car Parking!", ln=1, align="C")
+        pdf.cell(200, 4, txt="This is a computer-generated bill.", ln=1, align="C")
         pdf.ln(2)
-        pdf.set_font("Arial", style="B", size=6)
-        pdf.cell(200, 3, txt="Powered by CodeHive - Your Technology Partner", ln=1, align="C")
+        pdf.set_font("Arial", style="B", size=7)
+        pdf.cell(200, 4, txt="Powered by CodeHive - Your Technology Partner", ln=1, align="C")
         
         # Generate PDF in memory
         pdf_bytes = pdf.output(dest='S').encode('latin-1')
