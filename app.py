@@ -30,6 +30,7 @@ HTML_TEMPLATE = '''
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
         }
         .header {
             display: flex;
@@ -101,6 +102,45 @@ HTML_TEMPLATE = '''
             border-radius: 8px;
             margin: 20px 0;
             text-align: center;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+        .developer-info {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .developer-logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-bottom: 10px;
+        }
+        .developer-contact {
+            font-size: 11px;
+            margin: 5px 0;
+        }
+        .powered-by {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        .codehive-logo {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -191,6 +231,18 @@ HTML_TEMPLATE = '''
             
             <button type="submit">Generate Parking Bill PDF</button>
         </form>
+
+        <div class="developer-info">
+            <div class="codehive-logo">🚀 CodeHive</div>
+            <div class="developer-contact">📧 Email: codehive.dev@gmail.com</div>
+            <div class="developer-contact">📱 Phone: +91 98765 43210</div>
+            <div class="developer-contact">🌐 Website: www.codehive.dev</div>
+            <div class="developer-contact">💼 Specialized in: Web Applications & Automation</div>
+        </div>
+
+        <div class="footer">
+            <p>Powered by <span class="powered-by">CodeHive</span> - Your Technology Partner</p>
+        </div>
     </div>
 </body>
 </html>
@@ -267,10 +319,27 @@ def generate():
         
         pdf.ln(15)
         
-        # Footer
+        # Developer Information in PDF
+        pdf.set_font("Arial", style="B", size=10)
+        pdf.cell(200, 8, txt="-" * 50, ln=1, align="C")
+        pdf.set_font("Arial", style="B", size=12)
+        pdf.cell(200, 10, txt="🚀 CodeHive", ln=1, align="C")
+        pdf.set_font("Arial", size=9)
+        pdf.cell(200, 6, txt="Email: codehive.dev@gmail.com", ln=1, align="C")
+        pdf.cell(200, 6, txt="Phone: +91 98765 43210", ln=1, align="C")
+        pdf.cell(200, 6, txt="Web: www.codehive.dev", ln=1, align="C")
+        pdf.cell(200, 6, txt="Specialized in Web Applications & Automation", ln=1, align="C")
+        pdf.set_font("Arial", style="B", size=10)
+        pdf.cell(200, 8, txt="-" * 50, ln=1, align="C")
+        pdf.ln(5)
+        
+        # Footer with CodeHive credit
         pdf.set_font("Arial", style="I", size=9)
         pdf.cell(200, 6, txt="Thank you for choosing Vengatesan Car Parking!", ln=1, align="C")
         pdf.cell(200, 6, txt="This is a computer-generated bill.", ln=1, align="C")
+        pdf.ln(5)
+        pdf.set_font("Arial", style="B", size=8)
+        pdf.cell(200, 6, txt="Powered by CodeHive - Your Technology Partner", ln=1, align="C")
         
         # Generate PDF in memory
         pdf_bytes = pdf.output(dest='S').encode('latin-1')
