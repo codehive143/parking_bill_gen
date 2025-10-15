@@ -30,7 +30,6 @@ HTML_TEMPLATE = '''
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            position: relative;
         }
         .header {
             display: flex;
@@ -102,18 +101,6 @@ HTML_TEMPLATE = '''
             border-radius: 8px;
             margin: 20px 0;
             text-align: center;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-            color: #666;
-            font-size: 12px;
-        }
-        .powered-by {
-            color: #ff6b6b;
-            font-weight: bold;
         }
     </style>
 </head>
@@ -204,10 +191,6 @@ HTML_TEMPLATE = '''
             
             <button type="submit">Generate Parking Bill PDF</button>
         </form>
-
-        <div class="footer">
-            <p>Powered by <span class="powered-by">CodeHive</span></p>
-        </div>
     </div>
 </body>
 </html>
@@ -284,13 +267,10 @@ def generate():
         
         pdf.ln(15)
         
-        # Footer with CodeHive credit
+        # Footer
         pdf.set_font("Arial", style="I", size=9)
         pdf.cell(200, 6, txt="Thank you for choosing Vengatesan Car Parking!", ln=1, align="C")
         pdf.cell(200, 6, txt="This is a computer-generated bill.", ln=1, align="C")
-        pdf.ln(5)
-        pdf.set_font("Arial", style="B", size=8)
-        pdf.cell(200, 6, txt="Powered by CodeHive", ln=1, align="C")
         
         # Generate PDF in memory
         pdf_bytes = pdf.output(dest='S').encode('latin-1')
