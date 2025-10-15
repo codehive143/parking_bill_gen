@@ -319,11 +319,11 @@ def generate():
         
         pdf.ln(15)
         
-        # Developer Information in PDF
+        # Developer Information in PDF (NO EMOJIS - FIXED)
         pdf.set_font("Arial", style="B", size=10)
         pdf.cell(200, 8, txt="-" * 50, ln=1, align="C")
         pdf.set_font("Arial", style="B", size=12)
-        pdf.cell(200, 10, txt="🚀 CodeHive", ln=1, align="C")
+        pdf.cell(200, 10, txt="CodeHive Development", ln=1, align="C")
         pdf.set_font("Arial", size=9)
         pdf.cell(200, 6, txt="Email: codehive.dev@gmail.com", ln=1, align="C")
         pdf.cell(200, 6, txt="Phone: +91 98765 43210", ln=1, align="C")
