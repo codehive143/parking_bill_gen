@@ -294,9 +294,9 @@ def generate():
         pdf = FPDF()
         pdf.add_page()
         
-        # Header with parking logo
+        # Header without emoji
         pdf.set_font("Arial", style="B", size=20)
-        pdf.cell(200, 15, txt="🅿 VENGATESAN CAR PARKING", ln=1, align="C")
+        pdf.cell(200, 15, txt="VENGATESAN CAR PARKING", ln=1, align="C")
         pdf.set_font("Arial", size=10)
         pdf.cell(200, 8, txt="Tittagudi | Contact: 9791365506", ln=1, align="C")
         pdf.ln(10)
@@ -344,7 +344,7 @@ def generate():
         
         pdf.ln(15)
         
-        # CodeHive Logo in PDF
+        # CodeHive Logo in PDF (without emojis)
         pdf.set_font("Arial", style="B", size=10)
         pdf.cell(200, 8, txt="=" * 50, ln=1, align="C")
         pdf.set_font("Arial", style="B", size=16)
