@@ -32,33 +32,63 @@ HTML_TEMPLATE = '''
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             position: relative;
         }
-        .header {
+        .main-header {
             display: flex;
             align-items: center;
             margin-bottom: 20px;
             border-bottom: 2px solid #eee;
             padding-bottom: 15px;
         }
-        .logo {
-            width: 60px;
-            height: 60px;
-            background: #4CAF50;
-            border-radius: 50%;
+        .parking-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 15px;
             color: white;
             font-weight: bold;
             font-size: 24px;
+            margin-right: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .header-text h2 {
             margin: 0;
             color: #333;
+            font-size: 28px;
         }
         .header-text p {
             margin: 5px 0 0 0;
             color: #666;
+            font-size: 14px;
+        }
+        .codehive-logo-section {
+            background: linear-gradient(135deg, #1a2a3a, #2c3e50);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .codehive-main {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+        .codehive-code {
+            color: #4ECDC4;
+        }
+        .codehive-hive {
+            color: #FF6B6B;
+        }
+        .codehive-tagline {
+            font-size: 14px;
+            color: #bdc3c7;
+            font-style: italic;
+            letter-spacing: 1px;
         }
         .form-group { 
             margin: 20px 0; 
@@ -119,12 +149,6 @@ HTML_TEMPLATE = '''
             margin-top: 20px;
             text-align: center;
         }
-        .developer-logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #ff6b6b;
-            margin-bottom: 10px;
-        }
         .developer-contact {
             font-size: 11px;
             margin: 5px 0;
@@ -133,21 +157,14 @@ HTML_TEMPLATE = '''
             color: #ff6b6b;
             font-weight: bold;
         }
-        .codehive-logo {
-            display: inline-block;
-            background: #ff6b6b;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="logo">P</div>
+        <div class="main-header">
+            <div class="parking-logo">
+                🅿️
+            </div>
             <div class="header-text">
                 <h2>Vengatesan Car Parking</h2>
                 <p>Secure & Convenient Parking Solutions</p>
@@ -232,8 +249,16 @@ HTML_TEMPLATE = '''
             <button type="submit">Generate Parking Bill PDF</button>
         </form>
 
+        <!-- CodeHive Logo Section -->
+        <div class="codehive-logo-section">
+            <div class="codehive-main">
+                <span class="codehive-code">CODE</span> 
+                <span class="codehive-hive">HIVE</span>
+            </div>
+            <div class="codehive-tagline">LEARN AND LEAD</div>
+        </div>
+
         <div class="developer-info">
-            <div class="codehive-logo">🚀 CodeHive</div>
             <div class="developer-contact">📧 Email: codehive.dev@gmail.com</div>
             <div class="developer-contact">📱 Phone: +91 98765 43210</div>
             <div class="developer-contact">🌐 Website: www.codehive.dev</div>
@@ -269,9 +294,9 @@ def generate():
         pdf = FPDF()
         pdf.add_page()
         
-        # Header with logo area
-        pdf.set_font("Arial", style="B", size=16)
-        pdf.cell(200, 10, txt="VENGATESAN CAR PARKING", ln=1, align="C")
+        # Header with parking logo
+        pdf.set_font("Arial", style="B", size=20)
+        pdf.cell(200, 15, txt="🅿 VENGATESAN CAR PARKING", ln=1, align="C")
         pdf.set_font("Arial", size=10)
         pdf.cell(200, 8, txt="Tittagudi | Contact: 9791365506", ln=1, align="C")
         pdf.ln(10)
@@ -319,18 +344,25 @@ def generate():
         
         pdf.ln(15)
         
-        # Developer Information in PDF (NO EMOJIS - FIXED)
+        # CodeHive Logo in PDF
         pdf.set_font("Arial", style="B", size=10)
-        pdf.cell(200, 8, txt="-" * 50, ln=1, align="C")
+        pdf.cell(200, 8, txt="=" * 50, ln=1, align="C")
+        pdf.set_font("Arial", style="B", size=16)
+        pdf.cell(200, 12, txt="CODE HIVE", ln=1, align="C")
+        pdf.set_font("Arial", style="I", size=12)
+        pdf.cell(200, 10, txt="LEARN AND LEAD", ln=1, align="C")
+        pdf.set_font("Arial", style="B", size=10)
+        pdf.cell(200, 8, txt="=" * 50, ln=1, align="C")
+        pdf.ln(5)
+        
+        # Developer Information in PDF
         pdf.set_font("Arial", style="B", size=12)
-        pdf.cell(200, 10, txt="CodeHive Development", ln=1, align="C")
+        pdf.cell(200, 10, txt="Development Partner", ln=1, align="C")
         pdf.set_font("Arial", size=9)
         pdf.cell(200, 6, txt="Email: codehive.dev@gmail.com", ln=1, align="C")
         pdf.cell(200, 6, txt="Phone: +91 98765 43210", ln=1, align="C")
         pdf.cell(200, 6, txt="Web: www.codehive.dev", ln=1, align="C")
         pdf.cell(200, 6, txt="Specialized in Web Applications & Automation", ln=1, align="C")
-        pdf.set_font("Arial", style="B", size=10)
-        pdf.cell(200, 8, txt="-" * 50, ln=1, align="C")
         pdf.ln(5)
         
         # Footer with CodeHive credit
