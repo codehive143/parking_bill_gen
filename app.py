@@ -378,10 +378,12 @@ def generate():
         
         filename = f"Parking_Bill_{name.replace(' ', '_')}_{month}_{year}.pdf"
         
-        return pdf_bytes, 200, {
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': f'attachment; filename={filename}'
-        }
+        return send_file(
+            io.BytesIO(pdf_bytes),
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/pdf'
+        )
         
     except Exception as e:
         return f"Error generating bill: {str(e)}"
