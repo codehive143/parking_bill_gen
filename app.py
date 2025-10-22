@@ -210,8 +210,14 @@ def generate():
         pdf.set_font("Arial", style="B", size=7)
         pdf.cell(200, 4, txt="Powered by CodeHive - Your Technology Partner", ln=1, align="C")
         
-        # Generate PDF in memory
-        pdf_bytes = pdf.output(dest='S').encode('latin-1')
+        # FIXED: Generate PDF bytes correctly
+        pdf_output = pdf.output(dest='S')  # Returns string for 'S' destination
+        
+        # Convert to bytes
+        if isinstance(pdf_output, str):
+            pdf_bytes = pdf_output.encode('latin-1')
+        else:
+            pdf_bytes = bytes(pdf_output)
         
         filename = f"Parking_Bill_{name.replace(' ', '_')}_{month}_{year}.pdf"
         
@@ -239,7 +245,7 @@ def generate():
     except Exception as e:
         return f"Error generating bill: {str(e)}"
 
-# HTML Templates (same as before - kept for brevity)
+# HTML Templates (same as before)
 LOGIN_HTML = '''
 <!DOCTYPE html>
 <html>
