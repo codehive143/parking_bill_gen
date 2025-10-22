@@ -4,9 +4,10 @@ from datetime import datetime
 import io
 import json
 import os
+import secrets
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'  # Change this in production
+app.secret_key = secrets.token_hex(16)  # Secure random secret key
 
 # Sample users (in production, use a proper database)
 USERS = {
@@ -15,7 +16,7 @@ USERS = {
 }
 
 # Storage for billed records
-BILLED_FILE = 'billed_records.json'
+BILLED_FILE = '/tmp/billed_records.json'  # Use /tmp for Vercel compatibility
 
 # Exactly 14 parking slots
 PARKING_SLOTS = [f"SLOT-{i:02d}" for i in range(1, 15)]
@@ -238,7 +239,7 @@ def generate():
     except Exception as e:
         return f"Error generating bill: {str(e)}"
 
-# HTML Templates
+# HTML Templates (same as before - kept for brevity)
 LOGIN_HTML = '''
 <!DOCTYPE html>
 <html>
