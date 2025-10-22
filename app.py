@@ -141,18 +141,6 @@ HTML_TEMPLATE = '''
             color: #666;
             font-size: 12px;
         }
-        .developer-info {
-            background: #2c3e50;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        .developer-contact {
-            font-size: 11px;
-            margin: 5px 0;
-        }
         .powered-by {
             color: #ff6b6b;
             font-weight: bold;
@@ -258,13 +246,6 @@ HTML_TEMPLATE = '''
             <div class="codehive-tagline">LEARN AND LEAD</div>
         </div>
 
-        <div class="developer-info">
-            <div class="developer-contact">📧 Email: codehive.dev@gmail.com</div>
-            <div class="developer-contact">📱 Phone: +91 98765 43210</div>
-            <div class="developer-contact">🌐 Website: www.codehive.dev</div>
-            <div class="developer-contact">💼 Specialized in: Web Applications & Automation</div>
-        </div>
-
         <div class="footer">
             <p>Powered by <span class="powered-by">CodeHive</span> - Your Technology Partner</p>
         </div>
@@ -328,65 +309,4 @@ def generate():
         pdf.ln(10)
         
         # Amount Section - Normal size
-        pdf.set_font("Arial", style="B", size=12)
-        pdf.cell(200, 10, txt="AMOUNT DETAILS", ln=1)
-        pdf.set_font("Arial", size=11)
-        
-        pdf.cell(120, 10, txt="Monthly Parking Charges:", ln=0)
-        pdf.cell(70, 10, txt=f"Rs. 1000.00", ln=1)
-        
-        pdf.ln(8)
-        
-        # Total Amount - Normal size
-        pdf.set_font("Arial", style="B", size=14)
-        pdf.cell(120, 12, txt="TOTAL AMOUNT:", ln=0)
-        pdf.cell(70, 12, txt=f"Rs. 1000.00", ln=1)
-        
-        pdf.ln(15)
-        
-        # FOOTER SECTION - SMALLER FONT SIZES
-        pdf.set_font("Arial", style="B", size=8)
-        pdf.cell(200, 4, txt="-" * 50, ln=1, align="C")
-        pdf.set_font("Arial", style="B", size=10)
-        pdf.cell(200, 6, txt="CODE HIVE", ln=1, align="C")
-        pdf.set_font("Arial", style="I", size=8)
-        pdf.cell(200, 5, txt="LEARN AND LEAD", ln=1, align="C")
-        pdf.set_font("Arial", style="B", size=8)
-        pdf.cell(200, 4, txt="-" * 50, ln=1, align="C")
-        pdf.ln(2)
-        
-        # Developer Information - Smaller
-        pdf.set_font("Arial", style="B", size=8)
-        pdf.cell(200, 5, txt="Development Partner", ln=1, align="C")
-        pdf.set_font("Arial", size=7)
-        pdf.cell(200, 4, txt="Email: codehive.dev@gmail.com", ln=1, align="C")
-        pdf.cell(200, 4, txt="Phone: +91 98765 43210", ln=1, align="C")
-        pdf.cell(200, 4, txt="Web: www.codehive.dev", ln=1, align="C")
-        pdf.cell(200, 4, txt="Specialized in Web Applications & Automation", ln=1, align="C")
-        pdf.ln(3)
-        
-        # Final Footer - Smallest
-        pdf.set_font("Arial", style="I", size=7)
-        pdf.cell(200, 4, txt="Thank you for choosing Vengatesan Car Parking!", ln=1, align="C")
-        pdf.cell(200, 4, txt="This is a computer-generated bill.", ln=1, align="C")
-        pdf.ln(2)
-        pdf.set_font("Arial", style="B", size=7)
-        pdf.cell(200, 4, txt="Powered by CodeHive - Your Technology Partner", ln=1, align="C")
-        
-        # Generate PDF in memory
-        pdf_bytes = pdf.output(dest='S').encode('latin-1')
-        
-        filename = f"Parking_Bill_{name.replace(' ', '_')}_{month}_{year}.pdf"
-        
-        return send_file(
-            io.BytesIO(pdf_bytes),
-            as_attachment=True,
-            download_name=filename,
-            mimetype='application/pdf'
-        )
-        
-    except Exception as e:
-        return f"Error generating bill: {str(e)}"
-
-if __name__ == '__main__':
-    app.run(debug=True)
+        pdf.set_font("Arial", style="B", size=
