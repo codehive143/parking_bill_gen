@@ -9,10 +9,12 @@ import secrets
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)  # Secure random secret key
 
-# Sample users (in production, use a proper database)
+# Four users with different passwords
 USERS = {
-    'admin': 'password123',
-    'vengatesan': 'parking123'
+    'arivuselvi': 'arivu123',
+    'venkatesan': 'venkat123', 
+    'dhiyanes': 'dhiya123',
+    'master': 'master123'
 }
 
 # Storage for billed records
@@ -44,11 +46,29 @@ def save_billed_record(record):
     except:
         pass
 
+def reset_billed_records():
+    """Reset all billed records (only for master user)"""
+    try:
+        if os.path.exists(BILLED_FILE):
+            os.remove(BILLED_FILE)
+        return True
+    except:
+        return False
+
 # Login required decorator
 def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'logged_in' not in session:
             return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    decorated_function.__name__ = f.__name__
+    return decorated_function
+
+def master_required(f):
+    """Decorator to require master user"""
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session or session.get('username') != 'master':
+            return "Access denied. Master privileges required.", 403
         return f(*args, **kwargs)
     decorated_function.__name__ = f.__name__
     return decorated_function
@@ -110,10 +130,23 @@ def billed():
             month_wise[month_key] = []
         month_wise[month_key].append(record)
     
+    is_master = session.get('username') == 'master'
     return render_template_string(BILLED_HTML, 
                                 slot_wise=slot_wise,
                                 month_wise=month_wise,
-                                username=session.get('username'))
+                                username=session.get('username'),
+                                is_master=is_master,
+                                total_records=len(records))
+
+@app.route('/reset_billing', methods=['POST'])
+@login_required
+@master_required
+def reset_billing():
+    """Reset all billing data - only accessible by master user"""
+    if reset_billed_records():
+        return redirect(url_for('billed'))
+    else:
+        return "Error resetting billing data", 500
 
 @app.route('/generate', methods=['POST'])
 @login_required
@@ -231,7 +264,8 @@ def generate():
             'year': year,
             'payment_mode': payment_mode,
             'bill_date': datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
-            'bill_amount': 'Rs. 1000.00'
+            'bill_amount': 'Rs. 1000.00',
+            'created_by': session.get('username')
         }
         save_billed_record(billed_record)
         
@@ -245,7 +279,7 @@ def generate():
     except Exception as e:
         return f"Error generating bill: {str(e)}"
 
-# HTML Templates with updated login padding and collapsible months
+# HTML Templates with updated users and reset button
 LOGIN_HTML = '''
 <!DOCTYPE html>
 <html>
@@ -320,6 +354,13 @@ LOGIN_HTML = '''
             color: #666;
             line-height: 1.4;
         }
+        .user-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-top: 10px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -347,9 +388,13 @@ LOGIN_HTML = '''
         </form>
         
         <div class="demo-accounts">
-            <p><strong>Demo Accounts:</strong></p>
-            <p>Username: admin | Password: password123</p>
-            <p>Username: vengatesan | Password: parking123</p>
+            <p><strong>Available Users:</strong></p>
+            <div class="user-list">
+                <div>arivuselvi / arivu123</div>
+                <div>venkatesan / venkat123</div>
+                <div>dhiyanes / dhiya123</div>
+                <div>master / master123</div>
+            </div>
         </div>
     </div>
 </body>
@@ -659,6 +704,9 @@ BILLED_HTML = '''
             border-bottom: 2px solid #667eea;
             padding-bottom: 10px;
             margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .slot-grid {
             display: grid;
@@ -736,6 +784,44 @@ BILLED_HTML = '''
             font-size: 12px;
             margin-left: 10px;
         }
+        .reset-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .reset-btn {
+            background: #e74c3c;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .reset-btn:hover {
+            background: #c0392b;
+        }
+        .master-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .stats-info {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -746,7 +832,9 @@ BILLED_HTML = '''
             <a href="/billed" class="nav-item active">Billed</a>
         </div>
         <div class="user-info">
-            Welcome, {{ username }} | <a href="/logout" style="color: #667eea;">Logout</a>
+            Welcome, {{ username }} 
+            {% if is_master %}<span class="master-badge">MASTER</span>{% endif %}
+            | <a href="/logout" style="color: #667eea;">Logout</a>
         </div>
     </div>
 
@@ -754,9 +842,20 @@ BILLED_HTML = '''
         <div class="content-container">
             <h1>Billed Records</h1>
             
+            {% if total_records > 0 %}
+            <div class="stats-info">
+                <strong>Total Records: {{ total_records }}</strong> | 
+                <strong>Slots Used: {{ slot_wise|length }}/14</strong> | 
+                <strong>Months Billed: {{ month_wise|length }}</strong>
+            </div>
+            {% endif %}
+
             <!-- Slot-wise Section -->
             <div class="section">
-                <h2 class="section-title">Slot-wise Billing</h2>
+                <h2 class="section-title">
+                    <span>Slot-wise Billing</span>
+                    <span>Total Slots: {{ slot_wise|length }}/14</span>
+                </h2>
                 {% if slot_wise %}
                 <div class="slot-grid">
                     {% for slot, records in slot_wise.items() %}
@@ -768,7 +867,7 @@ BILLED_HTML = '''
                             Vehicle: {{ record.vehicle_no }} ({{ record.vehicle_type }})<br>
                             Period: {{ record.month }} {{ record.year }}<br>
                             Payment: {{ record.payment_mode }}<br>
-                            <small>Billed on: {{ record.bill_date }}</small>
+                            <small>Billed on: {{ record.bill_date }} by {{ record.created_by }}</small>
                         </div>
                         {% endfor %}
                     </div>
@@ -781,7 +880,10 @@ BILLED_HTML = '''
 
             <!-- Month-wise Section -->
             <div class="section">
-                <h2 class="section-title">Month-wise Billing (Click to Expand)</h2>
+                <h2 class="section-title">
+                    <span>Month-wise Billing (Click to Expand)</span>
+                    <span>Total Months: {{ month_wise|length }}</span>
+                </h2>
                 {% if month_wise %}
                 {% for month, records in month_wise.items() %}
                 <div class="month-section">
@@ -797,7 +899,7 @@ BILLED_HTML = '''
                                 Slot: {{ record.slot_number }}<br>
                                 Vehicle: {{ record.vehicle_no }} ({{ record.vehicle_type }})<br>
                                 Payment: {{ record.payment_mode }}<br>
-                                <small>Billed on: {{ record.bill_date }}</small>
+                                <small>Billed on: {{ record.bill_date }} by {{ record.created_by }}</small>
                             </div>
                             {% endfor %}
                         </div>
@@ -808,6 +910,19 @@ BILLED_HTML = '''
                 <div class="no-records">No billed records found</div>
                 {% endif %}
             </div>
+
+            <!-- Master Reset Section -->
+            {% if is_master %}
+            <div class="reset-section">
+                <h3>🔧 Master Control Panel</h3>
+                <p><strong>Warning:</strong> This will permanently delete all billing records and start fresh.</p>
+                <p>Total records to be deleted: <strong>{{ total_records }}</strong></p>
+                <form action="/reset_billing" method="POST" onsubmit="return confirmReset()">
+                    <button type="submit" class="reset-btn">🚨 RESET ALL BILLING DATA</button>
+                </form>
+                <small>Only available to Master user</small>
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -818,6 +933,10 @@ BILLED_HTML = '''
             
             content.classList.toggle('show');
             toggleIcon.classList.toggle('rotated');
+        }
+
+        function confirmReset() {
+            return confirm('🚨 ARE YOU SURE?\n\nThis will permanently delete ALL billing records ({{ total_records }} records).\nThis action cannot be undone!');
         }
 
         // Optional: Auto-expand first month
