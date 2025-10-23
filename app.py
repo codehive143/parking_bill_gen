@@ -245,7 +245,7 @@ def generate():
     except Exception as e:
         return f"Error generating bill: {str(e)}"
 
-# HTML Templates (same as before)
+# HTML Templates with updated login padding and collapsible months
 LOGIN_HTML = '''
 <!DOCTYPE html>
 <html>
@@ -255,47 +255,52 @@ LOGIN_HTML = '''
         body { 
             font-family: Arial, sans-serif; 
             max-width: 400px; 
-            margin: 100px auto; 
+            margin: 50px auto; 
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .login-container {
             background: white;
-            padding: 40px;
+            padding: 30px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             text-align: center;
+            width: 100%;
         }
         .logo {
             font-size: 48px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         h2 {
             color: #333;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         .form-group { 
-            margin: 20px 0; 
+            margin: 15px 0; 
             text-align: left;
         }
         label { 
             display: block; 
-            margin-bottom: 8px; 
+            margin-bottom: 5px; 
             font-weight: bold;
             color: #333;
         }
         input { 
             width: 100%; 
-            padding: 12px; 
+            padding: 10px; 
             border: 2px solid #ddd; 
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
+            box-sizing: border-box;
         }
         button { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white; 
-            padding: 15px; 
+            padding: 12px; 
             border: none; 
             border-radius: 8px;
             font-size: 16px;
@@ -307,6 +312,13 @@ LOGIN_HTML = '''
         .error {
             color: #ff6b6b;
             margin: 10px 0;
+            font-size: 14px;
+        }
+        .demo-accounts {
+            margin-top: 15px;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -334,8 +346,8 @@ LOGIN_HTML = '''
             <button type="submit">Login</button>
         </form>
         
-        <div style="margin-top: 20px; font-size: 12px; color: #666;">
-            <p>Demo Accounts:</p>
+        <div class="demo-accounts">
+            <p><strong>Demo Accounts:</strong></p>
             <p>Username: admin | Password: password123</p>
             <p>Username: vengatesan | Password: parking123</p>
         </div>
@@ -676,20 +688,53 @@ BILLED_HTML = '''
             border-left: 4px solid #4CAF50;
         }
         .month-section {
-            margin-bottom: 30px;
+            margin-bottom: 15px;
         }
         .month-header {
             background: #2c3e50;
             color: white;
             padding: 12px;
             border-radius: 5px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        .month-header:hover {
+            background: #34495e;
+        }
+        .month-content {
+            display: none;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        .month-content.show {
+            display: block;
+        }
+        .toggle-icon {
+            font-size: 16px;
+            transition: transform 0.3s;
+        }
+        .toggle-icon.rotated {
+            transform: rotate(180deg);
         }
         .no-records {
             text-align: center;
             color: #666;
             font-style: italic;
             padding: 20px;
+        }
+        .records-count {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
         }
     </style>
 </head>
@@ -716,7 +761,7 @@ BILLED_HTML = '''
                 <div class="slot-grid">
                     {% for slot, records in slot_wise.items() %}
                     <div class="slot-card">
-                        <div class="slot-header">{{ slot }}</div>
+                        <div class="slot-header">{{ slot }} <span class="records-count">{{ records|length }}</span></div>
                         {% for record in records %}
                         <div class="record-item">
                             <strong>{{ record.name }}</strong><br>
@@ -736,21 +781,26 @@ BILLED_HTML = '''
 
             <!-- Month-wise Section -->
             <div class="section">
-                <h2 class="section-title">Month-wise Billing</h2>
+                <h2 class="section-title">Month-wise Billing (Click to Expand)</h2>
                 {% if month_wise %}
                 {% for month, records in month_wise.items() %}
                 <div class="month-section">
-                    <div class="month-header">{{ month }}</div>
-                    <div class="slot-grid">
-                        {% for record in records %}
-                        <div class="record-item">
-                            <strong>{{ record.name }}</strong><br>
-                            Slot: {{ record.slot_number }}<br>
-                            Vehicle: {{ record.vehicle_no }} ({{ record.vehicle_type }})<br>
-                            Payment: {{ record.payment_mode }}<br>
-                            <small>Billed on: {{ record.bill_date }}</small>
+                    <div class="month-header" onclick="toggleMonth('month-{{ loop.index }}')">
+                        <span>{{ month }} <span class="records-count">{{ records|length }}</span></span>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="month-content" id="month-{{ loop.index }}">
+                        <div class="slot-grid">
+                            {% for record in records %}
+                            <div class="record-item">
+                                <strong>{{ record.name }}</strong><br>
+                                Slot: {{ record.slot_number }}<br>
+                                Vehicle: {{ record.vehicle_no }} ({{ record.vehicle_type }})<br>
+                                Payment: {{ record.payment_mode }}<br>
+                                <small>Billed on: {{ record.bill_date }}</small>
+                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     </div>
                 </div>
                 {% endfor %}
@@ -760,6 +810,26 @@ BILLED_HTML = '''
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleMonth(monthId) {
+            const content = document.getElementById(monthId);
+            const toggleIcon = content.previousElementSibling.querySelector('.toggle-icon');
+            
+            content.classList.toggle('show');
+            toggleIcon.classList.toggle('rotated');
+        }
+
+        // Optional: Auto-expand first month
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstMonth = document.querySelector('.month-content');
+            if (firstMonth) {
+                firstMonth.classList.add('show');
+                const firstToggleIcon = firstMonth.previousElementSibling.querySelector('.toggle-icon');
+                firstToggleIcon.classList.add('rotated');
+            }
+        });
+    </script>
 </body>
 </html>
 '''
