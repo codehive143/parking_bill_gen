@@ -14,7 +14,7 @@ USERS = {
     'Arivuselvi': 'arivu123',
     'Venkatesan': 'venkat123', 
     'Dhiyanes': 'dhiya123',
-    'Master': 'Master123'
+    'Master': 'Master123'  # Note: Capital 'M' in Master
 }
 
 # Storage for billed records
@@ -25,6 +25,17 @@ PARKING_SLOTS = [f"SLOT-{i:02d}" for i in range(1, 15)]
 
 # Year options
 YEARS = [str(year) for year in range(2020, 2050)]
+
+def initialize_files():
+    """Initialize data files if they don't exist"""
+    try:
+        if not os.path.exists(BILLED_FILE):
+            with open(BILLED_FILE, 'w') as f:
+                json.dump([], f, indent=2)
+        return True
+    except Exception as e:
+        print(f"Error initializing files: {e}")
+        return False
 
 def load_billed_records():
     """Load billed records from file"""
@@ -43,14 +54,15 @@ def save_billed_record(record):
     try:
         with open(BILLED_FILE, 'w') as f:
             json.dump(records, f, indent=2)
+        return True
     except:
-        pass
+        return False
 
 def reset_billed_records():
     """Reset all billed records (only for master user)"""
     try:
-        if os.path.exists(BILLED_FILE):
-            os.remove(BILLED_FILE)
+        with open(BILLED_FILE, 'w') as f:
+            json.dump([], f, indent=2)
         return True
     except:
         return False
@@ -65,9 +77,9 @@ def login_required(f):
     return decorated_function
 
 def master_required(f):
-    """Decorator to require master user"""
+    """Decorator to require master user - FIXED: using correct username"""
     def decorated_function(*args, **kwargs):
-        if 'logged_in' not in session or session.get('username') != 'master':
+        if 'logged_in' not in session or session.get('username') != 'Master':  # Changed to 'Master'
             return "Access denied. Master privileges required.", 403
         return f(*args, **kwargs)
     decorated_function.__name__ = f.__name__
@@ -130,7 +142,8 @@ def billed():
             month_wise[month_key] = []
         month_wise[month_key].append(record)
     
-    is_master = session.get('username') == 'master'
+    # FIXED: Check for 'Master' instead of 'master'
+    is_master = session.get('username') == 'Master'
     return render_template_string(BILLED_HTML, 
                                 slot_wise=slot_wise,
                                 month_wise=month_wise,
@@ -348,12 +361,6 @@ LOGIN_HTML = '''
             margin: 10px 0;
             font-size: 14px;
         }
-        .demo-accounts {
-            margin-top: 15px;
-            font-size: 11px;
-            color: #666;
-            line-height: 1.4;
-        }
         .user-list {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -385,8 +392,8 @@ LOGIN_HTML = '''
             </div>
             
             <button type="submit">Login</button>
-        </form> 
-           </div>
+        </form>
+    </div>
 </body>
 </html>
 '''
@@ -943,8 +950,25 @@ BILLED_HTML = '''
 </html>
 '''
 
+# Initialize files when the app starts
+initialize_files()
+
+# Vercel serverless function handler
+def handler(request, context):
+    with app.app_context():
+        response = app.full_dispatch_request()
+        return {
+            'statusCode': response.status_code,
+            'headers': dict(response.headers),
+            'body': response.get_data(as_text=True)
+        }
+
 if __name__ == '__main__':
+    print("🚀 Parking System Starting...")
+    print("📁 Initializing data files...")
+    initialize_files()
+    print("✅ System ready!")
+    print("👤 Available users:")
+    for username, password in USERS.items():
+        print(f"   {username} / {password}")
     app.run(debug=True)
-
-
-
