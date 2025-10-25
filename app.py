@@ -14,7 +14,7 @@ USERS = {
     'arivuselvi': 'arivu123',
     'venkatesan': 'venkat123', 
     'dhiyanes': 'dhiya123',
-    'master': 'master123'
+    'Master': 'Master123'
 }
 
 # Storage for billed records
@@ -24,7 +24,7 @@ BILLED_FILE = '/tmp/billed_records.json'  # Use /tmp for Vercel compatibility
 PARKING_SLOTS = [f"SLOT-{i:02d}" for i in range(1, 15)]
 
 # Year options
-YEARS = [str(year) for year in range(2020, 2031)]
+YEARS = [str(year) for year in range(2020, 2050)]
 
 def load_billed_records():
     """Load billed records from file"""
@@ -385,18 +385,8 @@ LOGIN_HTML = '''
             </div>
             
             <button type="submit">Login</button>
-        </form>
-        
-        <div class="demo-accounts">
-            <p><strong>Available Users:</strong></p>
-            <div class="user-list">
-                <div>arivuselvi / arivu123</div>
-                <div>venkatesan / venkat123</div>
-                <div>dhiyanes / dhiya123</div>
-                <div>master / master123</div>
-            </div>
-        </div>
-    </div>
+        </form> 
+           </div>
 </body>
 </html>
 '''
@@ -955,3 +945,4 @@ BILLED_HTML = '''
 
 if __name__ == '__main__':
     app.run(debug=True)
+
