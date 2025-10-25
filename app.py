@@ -14,7 +14,7 @@ USERS = {
     'Arivuselvi': 'arivu123',
     'Venkatesan': 'venkat123', 
     'Dhiyanes': 'dhiya123',
-    'Master': 'Master123'  # Note: Capital 'M' in Master
+    'Master': 'Master123'
 }
 
 # Storage for billed records
@@ -25,17 +25,6 @@ PARKING_SLOTS = [f"SLOT-{i:02d}" for i in range(1, 15)]
 
 # Year options
 YEARS = [str(year) for year in range(2020, 2050)]
-
-def initialize_files():
-    """Initialize data files if they don't exist"""
-    try:
-        if not os.path.exists(BILLED_FILE):
-            with open(BILLED_FILE, 'w') as f:
-                json.dump([], f, indent=2)
-        return True
-    except Exception as e:
-        print(f"Error initializing files: {e}")
-        return False
 
 def load_billed_records():
     """Load billed records from file"""
@@ -54,15 +43,14 @@ def save_billed_record(record):
     try:
         with open(BILLED_FILE, 'w') as f:
             json.dump(records, f, indent=2)
-        return True
     except:
-        return False
+        pass
 
 def reset_billed_records():
-    """Reset all billed records (only for master user)"""
+    """Reset all billed records (only for Master user)"""
     try:
-        with open(BILLED_FILE, 'w') as f:
-            json.dump([], f, indent=2)
+        if os.path.exists(BILLED_FILE):
+            os.remove(BILLED_FILE)
         return True
     except:
         return False
@@ -76,10 +64,10 @@ def login_required(f):
     decorated_function.__name__ = f.__name__
     return decorated_function
 
-def master_required(f):
-    """Decorator to require master user - FIXED: using correct username"""
+def Master_required(f):
+    """Decorator to require Master user"""
     def decorated_function(*args, **kwargs):
-        if 'logged_in' not in session or session.get('username') != 'Master':  # Changed to 'Master'
+        if 'logged_in' not in session or session.get('username') != 'Master':
             return "Access denied. Master privileges required.", 403
         return f(*args, **kwargs)
     decorated_function.__name__ = f.__name__
@@ -142,20 +130,19 @@ def billed():
             month_wise[month_key] = []
         month_wise[month_key].append(record)
     
-    # FIXED: Check for 'Master' instead of 'master'
-    is_master = session.get('username') == 'Master'
+    is_Master = session.get('username') == 'Master'
     return render_template_string(BILLED_HTML, 
                                 slot_wise=slot_wise,
                                 month_wise=month_wise,
                                 username=session.get('username'),
-                                is_master=is_master,
+                                is_Master=is_Master,
                                 total_records=len(records))
 
 @app.route('/reset_billing', methods=['POST'])
 @login_required
-@master_required
+@Master_required
 def reset_billing():
-    """Reset all billing data - only accessible by master user"""
+    """Reset all billing data - only accessible by Master user"""
     if reset_billed_records():
         return redirect(url_for('billed'))
     else:
@@ -361,6 +348,12 @@ LOGIN_HTML = '''
             margin: 10px 0;
             font-size: 14px;
         }
+        .demo-accounts {
+            margin-top: 15px;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.4;
+        }
         .user-list {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -392,8 +385,8 @@ LOGIN_HTML = '''
             </div>
             
             <button type="submit">Login</button>
-        </form>
-    </div>
+        </form> 
+           </div>
 </body>
 </html>
 '''
@@ -803,7 +796,7 @@ BILLED_HTML = '''
         .reset-btn:hover {
             background: #c0392b;
         }
-        .master-badge {
+        .Master-badge {
             background: #e74c3c;
             color: white;
             padding: 2px 8px;
@@ -830,7 +823,7 @@ BILLED_HTML = '''
         </div>
         <div class="user-info">
             Welcome, {{ username }} 
-            {% if is_master %}<span class="master-badge">MASTER</span>{% endif %}
+            {% if is_Master %}<span class="Master-badge">Master</span>{% endif %}
             | <a href="/logout" style="color: #667eea;">Logout</a>
         </div>
     </div>
@@ -909,7 +902,7 @@ BILLED_HTML = '''
             </div>
 
             <!-- Master Reset Section -->
-            {% if is_master %}
+            {% if is_Master %}
             <div class="reset-section">
                 <h3>🔧 Master Control Panel</h3>
                 <p><strong>Warning:</strong> This will permanently delete all billing records and start fresh.</p>
@@ -950,25 +943,5 @@ BILLED_HTML = '''
 </html>
 '''
 
-# Initialize files when the app starts
-initialize_files()
-
-# Vercel serverless function handler
-def handler(request, context):
-    with app.app_context():
-        response = app.full_dispatch_request()
-        return {
-            'statusCode': response.status_code,
-            'headers': dict(response.headers),
-            'body': response.get_data(as_text=True)
-        }
-
 if __name__ == '__main__':
-    print("🚀 Parking System Starting...")
-    print("📁 Initializing data files...")
-    initialize_files()
-    print("✅ System ready!")
-    print("👤 Available users:")
-    for username, password in USERS.items():
-        print(f"   {username} / {password}")
     app.run(debug=True)
