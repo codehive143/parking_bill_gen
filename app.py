@@ -11,9 +11,9 @@ app.secret_key = secrets.token_hex(16)  # Secure random secret key
 
 # Four users with different passwords
 USERS = {
-    'arivuselvi': 'arivu123',
-    'venkatesan': 'venkat123', 
-    'dhiyanes': 'dhiya123',
+    'Arivuselvi': 'arivu123',
+    'Aenkatesan': 'venkat123', 
+    'Dhiyanes': 'dhiya123',
     'Master': 'Master123'
 }
 
@@ -945,4 +945,5 @@ BILLED_HTML = '''
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
