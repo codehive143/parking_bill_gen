@@ -26,6 +26,18 @@ PARKING_SLOTS = [f"SLOT-{i:02d}" for i in range(1, 15)]
 # Year options
 YEARS = [str(year) for year in range(2020, 2050)]
 
+def initialize_files():
+    """Initialize data files if they don't exist"""
+    try:
+        if not os.path.exists(BILLED_FILE):
+            with open(BILLED_FILE, 'w') as f:
+                json.dump([], f, indent=2)
+            print("✅ Billed records file created")
+        return True
+    except Exception as e:
+        print(f"❌ Error initializing files: {e}")
+        return False
+
 def load_billed_records():
     """Load billed records from file"""
     try:
@@ -43,14 +55,15 @@ def save_billed_record(record):
     try:
         with open(BILLED_FILE, 'w') as f:
             json.dump(records, f, indent=2)
+        return True
     except:
-        pass
+        return False
 
 def reset_billed_records():
     """Reset all billed records (only for Master user)"""
     try:
-        if os.path.exists(BILLED_FILE):
-            os.remove(BILLED_FILE)
+        with open(BILLED_FILE, 'w') as f:
+            json.dump([], f, indent=2)
         return True
     except:
         return False
@@ -64,7 +77,7 @@ def login_required(f):
     decorated_function.__name__ = f.__name__
     return decorated_function
 
-def Master_required(f):
+def master_required(f):
     """Decorator to require Master user"""
     def decorated_function(*args, **kwargs):
         if 'logged_in' not in session or session.get('username') != 'Master':
@@ -130,17 +143,17 @@ def billed():
             month_wise[month_key] = []
         month_wise[month_key].append(record)
     
-    is_Master = session.get('username') == 'Master'
+    is_master = session.get('username') == 'Master'
     return render_template_string(BILLED_HTML, 
                                 slot_wise=slot_wise,
                                 month_wise=month_wise,
                                 username=session.get('username'),
-                                is_Master=is_Master,
+                                is_master=is_master,
                                 total_records=len(records))
 
 @app.route('/reset_billing', methods=['POST'])
 @login_required
-@Master_required
+@master_required
 def reset_billing():
     """Reset all billing data - only accessible by Master user"""
     if reset_billed_records():
@@ -243,7 +256,7 @@ def generate():
         pdf.set_font("Arial", style="B", size=7)
         pdf.cell(200, 4, txt="Powered by CodeHive - Your Technology Partner", ln=1, align="C")
         
-        # FIXED: Generate PDF bytes correctly
+        # Generate PDF bytes correctly
         pdf_output = pdf.output(dest='S')  # Returns string for 'S' destination
         
         # Convert to bytes
@@ -279,7 +292,7 @@ def generate():
     except Exception as e:
         return f"Error generating bill: {str(e)}"
 
-# HTML Templates with updated users and reset button
+# HTML Templates
 LOGIN_HTML = '''
 <!DOCTYPE html>
 <html>
@@ -385,8 +398,18 @@ LOGIN_HTML = '''
             </div>
             
             <button type="submit">Login</button>
-        </form> 
-           </div>
+        </form>
+        
+        <div class="demo-accounts">
+            <p><strong>Available Users:</strong></p>
+            <div class="user-list">
+                <div>Arivuselvi / arivu123</div>
+                <div>Venkatesan / venkat123</div>
+                <div>Dhiyanes / dhiya123</div>
+                <div>Master / Master123</div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 '''
@@ -616,6 +639,8 @@ BILLING_HTML = '''
                         <option value="">Select Payment Mode</option>
                         <option value="Online">Online Payment</option>
                         <option value="Cash">Cash</option>
+                        <option value="Card">Card</option>
+                        <option value="UPI">UPI</option>
                     </select>
                 </div>
                 
@@ -796,7 +821,7 @@ BILLED_HTML = '''
         .reset-btn:hover {
             background: #c0392b;
         }
-        .Master-badge {
+        .master-badge {
             background: #e74c3c;
             color: white;
             padding: 2px 8px;
@@ -823,7 +848,7 @@ BILLED_HTML = '''
         </div>
         <div class="user-info">
             Welcome, {{ username }} 
-            {% if is_Master %}<span class="Master-badge">Master</span>{% endif %}
+            {% if is_master %}<span class="master-badge">MASTER</span>{% endif %}
             | <a href="/logout" style="color: #667eea;">Logout</a>
         </div>
     </div>
@@ -875,10 +900,10 @@ BILLED_HTML = '''
                     <span>Total Months: {{ month_wise|length }}</span>
                 </h2>
                 {% if month_wise %}
-                {% for month, records in month_wise.items() %}
+                {% for month_key, records in month_wise.items() %}
                 <div class="month-section">
                     <div class="month-header" onclick="toggleMonth('month-{{ loop.index }}')">
-                        <span>{{ month }} <span class="records-count">{{ records|length }}</span></span>
+                        <span>{{ month_key }} <span class="records-count">{{ records|length }}</span></span>
                         <span class="toggle-icon">▼</span>
                     </div>
                     <div class="month-content" id="month-{{ loop.index }}">
@@ -902,7 +927,7 @@ BILLED_HTML = '''
             </div>
 
             <!-- Master Reset Section -->
-            {% if is_Master %}
+            {% if is_master %}
             <div class="reset-section">
                 <h3>🔧 Master Control Panel</h3>
                 <p><strong>Warning:</strong> This will permanently delete all billing records and start fresh.</p>
@@ -918,6 +943,7 @@ BILLED_HTML = '''
 
     <script>
         function toggleMonth(monthId) {
+            console.log('Toggling:', monthId);
             const content = document.getElementById(monthId);
             const toggleIcon = content.previousElementSibling.querySelector('.toggle-icon');
             
@@ -926,16 +952,18 @@ BILLED_HTML = '''
         }
 
         function confirmReset() {
-            return confirm('🚨 ARE YOU SURE?\n\nThis will permanently delete ALL billing records ({{ total_records }} records).\nThis action cannot be undone!');
+            return confirm('🚨 ARE YOU SURE?\\n\\nThis will permanently delete ALL billing records ({{ total_records }} records).\\nThis action cannot be undone!');
         }
 
-        // Optional: Auto-expand first month
+        // Auto-expand first month when page loads
         document.addEventListener('DOMContentLoaded', function() {
             const firstMonth = document.querySelector('.month-content');
             if (firstMonth) {
                 firstMonth.classList.add('show');
                 const firstToggleIcon = firstMonth.previousElementSibling.querySelector('.toggle-icon');
-                firstToggleIcon.classList.add('rotated');
+                if (firstToggleIcon) {
+                    firstToggleIcon.classList.add('rotated');
+                }
             }
         });
     </script>
@@ -943,5 +971,25 @@ BILLED_HTML = '''
 </html>
 '''
 
+# Initialize files when the app starts
+initialize_files()
+
+# Vercel serverless function handler
+def handler(request, context):
+    with app.app_context():
+        response = app.full_dispatch_request()
+        return {
+            'statusCode': response.status_code,
+            'headers': dict(response.headers),
+            'body': response.get_data(as_text=True)
+        }
+
 if __name__ == '__main__':
+    print("🚀 Parking System Starting...")
+    print("📁 Initializing data files...")
+    initialize_files()
+    print("✅ System ready!")
+    print("👤 Available users:")
+    for username, password in USERS.items():
+        print(f"   {username} / {password}")
     app.run(debug=True)
